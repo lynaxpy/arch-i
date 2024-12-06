@@ -8,7 +8,7 @@ mkfs.ext4 /dev/sda2
 mkfs.ext4 /dev/sda3
 
 # Монтирование разделов
-echo "==> Монтирование разделов"
+echo "==> "
 rm -rf /mnt
 mkdir /mnt
 mount /dev/sda2 /mnt
@@ -17,43 +17,37 @@ mkdir /mnt/home
 mount /dev/sda1 /mnt/boot
 mount /dev/sda3 /mnt/home
 
-# Установка базовой системы
-echo "==> Установка базовой системы"
+echo "==> Installing basic system"
 pacstrap /mnt base base-devel linux linux-firmware 
 
-# Генерация fstab
-echo "==> Генерация fstab"
+echo "==> Generetaing fstab"
 genfstab -U /mnt >> /mnt/etc/fstab
 
-# Переход в chroot окружение
-echo "==> Переход в chroot окружение"
+echo "==> Moving to chroot env"
 arch-chroot /mnt /bin/bash <<EOF
 
-# Установка и настройка загрузчика
-echo "==> Установка и настройка загрузчика"
+
+echo "==> Installing and setting up bootloader"
 pacman -S --noconfirm grub efibootmgr
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 grub-mkconfig -o /boot/grub/grub.cfg
 
-# Создание пользователя
-echo "==> Создание пользователя"
+echo "==> Creating Users"
 useradd -m -G wheel -s /bin/bash lynax
 echo "lynax:password" | chpasswd
 echo "root:password" | chpasswd
 
-# Настройка sudo
-echo "==> Настройка sudo"
+echo "==> Setting up sudo"
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
-# Установка дополнительных пакетов
-echo "==> Установка GDM и NetworkManager"
-pacman -S --noconfirm gdm gnome networkmanager hyprland kitty intel-ucode pipewire pipewire-pulse pipewire-alsa pipewire-jack git bluez bluez-utils
-# Включение служб
+echo "==> Installing GDM and NetworkManager"
+pacman -S --noconfirm gdm gnome networkmanager hyprland kitty net-tools nano intel-ucode pipewire pipewire-pulse pipewire-alsa pipewire-jack git bluez bluez-utils
+
 systemctl enable gdm
 systemctl enable NetworkManager
 
 EOF
 
-echo "==> Установка завершена. Перезагрузите систему."
+echo "==> Installing finished! Reboot system"
 
 
